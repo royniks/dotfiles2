@@ -1,0 +1,112 @@
+{
+  "position": "top",
+  "layer": "top",
+  "height": 30,
+  "spacing": 0,
+  "reload_style_on_change": true,
+
+  "modules-left": [
+    "hyprland/workspaces",
+    "sway/mode",
+    "mpris"
+  ],
+
+  "modules-center": [
+//    "sway/window"
+
+    "clock"
+  ],
+
+  "modules-right": [
+    "tray",
+//    "cpu",
+//  "memory",
+//   "battery",
+    "network",
+   "pulseaudio"
+//    "clock"
+  ],
+
+  "sway/window": {
+    "max-length": 60
+  },
+
+  "sway/workspaces": {
+    "disable-scroll": true,
+    "all-outputs": true,
+    "format": "{icon}",
+    "format-icons": {
+      "1": "1",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5"
+    }
+  },
+
+  "tray": {
+    "spacing": 8,
+    "tooltip": false
+  },
+
+  "cpu": {
+    "interval": 2,
+    "format": "  {usage}%",
+    "states": {
+      "critical": 90
+    }
+  },
+
+  "memory": {
+    "interval": 2,
+    "format": "  {percentage}%",
+    "states": {
+      "critical": 80
+    }
+  },
+
+  "battery": {
+    "interval": 5,
+    "format": "{icon}  {capacity}%",
+    "format-icons": ["", "", "", "", ""],
+    "states": {
+      "warning": 20,
+      "critical": 10
+    },
+    "tooltip": false
+  },
+
+  "network": {
+    "interval": 5,
+    "format-wifi": "  {essid} ({signalStrength}%)",
+    "format-ethernet": "󰈀  Connected",
+    "format-disconnected": "󰖪  Disconnected",
+    "tooltip": true
+  },
+
+  "pulseaudio": {
+    "scroll-step": 5,
+    "max-volume": 100,
+    "format": "{icon}  {volume}%",
+    "format-icons": {
+      "default": ["", "", ""]
+    },
+    "format-muted": "󰝟  Muted",
+    "on-scroll-up": "pactl set-sink-volume @DEFAULT_SINK@ +5%",
+    "on-scroll-down": "pactl set-sink-volume @DEFAULT_SINK@ -5%",
+    "tooltip": true
+  },
+
+  "clock": {
+    "format": "  {:%a %d %b %I:%M %p}",
+    "tooltip-format": "{:%A, %d %B %Y}"
+  },
+
+  "mpris": {
+    "format": " 󰎈  {title}",
+    "on-click": "playerctl play-pause",
+    "max-length": 40,
+    "tooltip": true
+  }
+}
+

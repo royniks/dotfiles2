@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# 1. Define your paths
+BASE_DIR="$HOME/Documents/Books"
+declare -a folders=("self-help" "frictional")
+
+# 2. First Menu: Select the Folder
+folder_choice=$(printf '%s\n' "${folders[@]}" | dmenu -i -p "Select Category:")
+
+[[ -z "$folder_choice" ]] && exit 0
+SELECTED_PATH="$BASE_DIR/$folder_choice"
+
+# 3. Second Menu: Select the Book
+# Added -o (OR) logic to find both .pdf and .epub (case-insensitive)
+book_list=$(find "$SELECTED_PATH" -maxdepth 1 -type f \( -iname "*.pdf" -o -iname "*.epub" -o -iname "*.mobi" \) 2>/dev/null)
+
+if [[ -z "$book_list" ]]; then
+    notify-send "Books" "No supported books found in $folder_choice"
+    exit 1
+fi
+
+# Show only filenames in dmenu
+# We use IFS to handle spaces in filenames correctly
+IFS=$'\n'
+book_choice=$(printf '%s\n' "$book_list" | xargs -I{} basename "{}" | dmenu -i -l 20 -p "Select Book:")
+
+[[ -z "$book_choice" ]] && exit 0
+
+# 4. Open with Zathura
+full_book_path="$SELECTED_PATH/$book_choice"
+
+if [[ -f "$full_book_path" ]]; then
+    zathura "$full_book_path" &
+fi

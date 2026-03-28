@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+# Updated directory for Org files
+ORG_DIR="$HOME/Org"
+# We use emacsclient if you run Emacs as a daemon, otherwise just "emacs"
+EDITOR_CMD="emacs" 
+AUTHOR="Nikhil"
+
+wofi_menu() {
+  wofi --dmenu --prompt "$1" --lines 6 --width 500 --cache-file /dev/null
+}
+
+new_org_note() {
+  # 1. Ask for name
+  name=$(printf "" | wofi_menu "Note name (empty = date)")
+  [ -z "$name" ] && name="$(date +%F_%H-%M-%S)"
+
+  # 2. Ask for location (ideas, journal, learning, notes)
+  choice=$(find "$ORG_DIR" -maxdepth 1 -type d -not -path "$ORG_DIR" -printf "%f\n" | wofi_menu "Save to...")
+  
+  if [ -z "$choice" ]; then
+    dir="$ORG_DIR/"
+  else
+    dir="$ORG_DIR/$choice/"
+  fi
+
+  file="$dir$name.org"
+
+  # 3. Create file with Org Metadata
+  if [ ! -f "$file" ]; then
+    cat <<EOF > "$file"
+#+TITLE: ${name}
+#+AUTHOR: ${AUTHOR}
+#+DATE: 
+
+  
+EOF
+  fi
+
+  # Launch Emacs (gui version)
+  setsid -f "$EDITOR_CMD" "$file" >/dev/null 2>&1
+}
+
+select_org_note() {
+  # Look for .org files instead of .md
+  choice=$(
+    echo -e "New\n$(find "$ORG_DIR" -type f -name '*.org' -printf '%T@ %P\n' \
+      | sort -nr \
+      | cut -d' ' -f2-)" | wofi_menu "Choose Org note or create new"
+  )
+
+  case "$choice" in
+    New)
+      new_org_note
+      ;;
+    *.org)
+      setsid -f "$EDITOR_CMD" "$ORG_DIR/$choice" >/dev/null 2>&1
+      ;;
+    *)
+      exit 0
+      ;;
+  esac
+}
+
+select_org_note

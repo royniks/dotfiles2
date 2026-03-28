@@ -1,0 +1,3 @@
+setenv QT_STYLE_OVERRIDE kvantum
+setenv QT_QPA_PLATFORM wayland
+

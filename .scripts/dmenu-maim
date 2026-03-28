@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Dependencies: maim, xclip, xdotool, xrandr, dmenu, libnotify
+
+# --- Configuration ---
+MENU="dmenu -i -p"
+SAVE_DIR="$HOME/Pictures/Screenshots"
+FILE_PREFIX="screenshot"
+
+mkdir -p "$SAVE_DIR"
+set -euo pipefail
+
+get_timestamp() {
+    date '+%Y%m%d-%H%M%S'
+}
+
+copy_to_clipboard() {
+    xclip -selection clipboard -t image/png
+}
+
+main() {
+    # 1. Main Menu
+    declare -a modes=("Selected region" "Fullscreen" "Active window")
+    target=$(printf '%s\n' "${modes[@]}" | $MENU "Take screenshot of:") || exit 1
+
+    filename="$SAVE_DIR/${FILE_PREFIX}-$(get_timestamp).png"
+
+    # --- FAST TRACK: Selected Region ---
+    if [[ "$target" == "Selected region" ]]; then
+        sleep 0.2
+        maim -u -s | tee "$filename" | copy_to_clipboard
+        notify-send "📸 Region Captured" "Saved and Copied"
+        exit 0
+    fi
+
+    # --- MONITOR TRACK: Fullscreen ---
+    if [[ "$target" == "Fullscreen" ]]; then
+        # Dynamically list all connected and active monitors
+        mon_choice=$(xrandr --listactivemonitors | awk '/+/ {print $4}' | $MENU "Select Monitor:") || exit 1
+        
+        # IMPROVED GEOMETRY LOGIC
+        # We grab the line for the monitor and extract ONLY the WxH+X+Y part.
+        # It handles cases with or without the /mm dimension strings.
+        geo=$(xrandr --listactivemonitors | grep " $mon_choice$" | awk '{print $3}' | sed -E 's/\/[0-9]+//g')
+
+        # Last-resort check
+        if [[ -z "$geo" ]]; then
+            notify-send "Error" "Could not parse geometry for $mon_choice"
+            exit 1
+        fi
+
+        maim -g "$geo" | tee "$filename" | copy_to_clipboard
+        notify-send "📸 Fullscreen Captured" "Monitor: $mon_choice"
+        exit 0
+    fi
+
+    # --- STANDARD TRACK: Active Window ---
+    if [[ "$target" == "Active window" ]]; then
+        win_id=$(xdotool getactivewindow)
+        delay=$(printf '%s\n' "0" "1" "3" "5" | $MENU "Delay (seconds):") || exit 1
+        
+        sleep "$delay"
+        maim -i "$win_id" | tee "$filename" | copy_to_clipboard
+        notify-send "📸 Window Captured" "Saved and Copied"
+        exit 0
+    fi
+}
+
+main

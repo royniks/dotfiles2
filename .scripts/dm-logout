@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+#
+# Script name: dm-logout (Awesome WM Edition)
+# Description: Minimal logout, reboot, and shutdown for Awesome WM
+
+# --- Configuration ---
+MENU="dmenu -i -l 10 -p"
+# Error handling
+set -euo pipefail
+
+confirm() {
+    echo -e "No\nYes" | $MENU "$1"
+}
+
+main() {
+    declare -a options=(
+        "Logout"
+        "Reboot"
+        "Shutdown"
+    )
+
+    # Pipe the options into dmenu
+    choice=$(printf '%s\n' "${options[@]}" | $MENU "Power Menu:")
+
+    case "$choice" in
+        'Logout')
+            if [[ $(confirm "Quit Awesome?") == "Yes" ]]; then
+                # The "Proper" way to exit Awesome WM via terminal
+                echo 'awesome.quit()' | awesome-client
+            fi
+            ;;
+        'Reboot')
+            if [[ $(confirm "Reboot?") == "Yes" ]]; then
+                systemctl reboot
+            fi
+            ;;
+        'Shutdown')
+            if [[ $(confirm "Shutdown?") == "Yes" ]]; then
+                systemctl poweroff
+            fi
+            ;;
+        *)
+            exit 0
+            ;;
+    esac
+}
+
+main

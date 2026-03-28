@@ -1,0 +1,5 @@
+set selection-clipboard clipboard
+set recolor flase
+set recolor-darkcolor "#dcdccc"
+set recolor-lightcolor "#202020"
+set guioptions +=v

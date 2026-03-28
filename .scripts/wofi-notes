@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+NOTES_DIR="$HOME/notes"
+TERMINAL="kitty"
+AUTHOR="Nikhil"  # Set your name here
+
+wofi_menu() {
+  wofi --dmenu --prompt "$1" --lines 6 --width 500 --cache-file /dev/null
+}
+
+new_note() {
+  # 1. Ask for name
+  name=$(printf "" | wofi_menu "Note name (empty = date)")
+  [ -z "$name" ] && name="$(date +%F_%H-%M-%S)"
+
+  # 2. Ask for location
+  choice=$(find "$NOTES_DIR" -maxdepth 1 -type d -not -path "$NOTES_DIR" -printf "%f\n" | wofi_menu "Save to...")
+  
+  if [ -z "$choice" ]; then
+    dir="$NOTES_DIR/"
+  else
+    dir="$NOTES_DIR/$choice/"
+  fi
+
+  file="$dir$name.md"
+
+  # 3. Create file with YAML Metadata if it doesn't exist
+  if [ ! -f "$file" ]; then
+    cat <<EOF > "$file"
+---
+title: ${name}
+author: ${AUTHOR}
+date: $(date '+%Y-%m-%d %H:%M')
+tags: [unfiltered]
+---
+
+
+EOF
+  fi
+
+  setsid -f "$TERMINAL" -e nvim "$file" >/dev/null 2>&1
+}
+
+select_note() {
+  choice=$(
+    echo -e "New\n$(find "$NOTES_DIR" -type f -name '*.md' -printf '%T@ %P\n' \
+      | sort -nr \
+      | cut -d' ' -f2-)" | wofi_menu "Choose note or create new"
+  )
+
+  case "$choice" in
+    New) new_note ;;
+    *.md) setsid -f "$TERMINAL" -e nvim "$NOTES_DIR/$choice" >/dev/null 2>&1 ;;
+    *) exit 0 ;;
+  esac
+}
+
+select_note

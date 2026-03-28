@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+WALL_DIR="$HOME/Pictures/gruvbox"
+
+mapfile -t WALLS < <(
+  find "$WALL_DIR" -type f \( \
+    -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \
+  \) | sort
+)
+
+SELECTED_NAME=$(printf "%s\n" "${WALLS[@]##*/}" \
+  | wofi --dmenu --prompt "Select Wallpaper")
+
+[ -z "$SELECTED_NAME" ] && exit 0
+
+for WALL in "${WALLS[@]}"; do
+  if [[ "${WALL##*/}" == "$SELECTED_NAME" ]]; then
+    SELECTED_WALL="$WALL"
+    break
+  fi
+done
+
+# 👉 SET WALLPAPER
+swww img "$SELECTED_WALL" \
+  --transition-type grow \
+  --transition-fps 60 \
+  --transition-duration 1.8
+
+# 👉 SAVE LAST WALLPAPER (ADD THIS LINE HERE)
+mkdir -p "$HOME/.cache"
+echo "$SELECTED_WALL" > "$HOME/.cache/current_wallpaper"
+
